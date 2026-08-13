@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Star, Trophy, Play, KeyRound, QrCode, Sparkles, Gamepad2, 
-  BookOpen, CheckCircle2, Award, Copy, Check 
+  BookOpen, CheckCircle2, Award, Copy, Check, FileText, Eye 
 } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import { useAuth } from '../context/AuthContext';
 import { JoinClassModal } from '../components/student/JoinClassModal';
 import { InteractiveGameModal } from '../components/student/InteractiveGameModal';
+import { PDFSlideViewerModal } from '../components/common/PDFSlideViewerModal';
 import { 
   getStoredData, INITIAL_MOCK_MATERIALS, INITIAL_MOCK_ASSIGNMENTS, INITIAL_MOCK_BADGES 
 } from '../lib/supabase';
@@ -17,6 +18,7 @@ export const StudentPortal = () => {
   const [selectedGrade, setSelectedGrade] = useState(profile?.grade_level || 3);
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [activeGame, setActiveGame] = useState(null);
+  const [activeViewerDoc, setActiveViewerDoc] = useState(null);
   const [copiedCode, setCopiedCode] = useState(false);
 
   const [joinedClasses, setJoinedClasses] = useState(() => getStoredData('joined_classes', [
@@ -138,10 +140,10 @@ export const StudentPortal = () => {
           </div>
         </div>
 
-        {/* INTERACTIVE GAME CATALOG FOR SELECTED GRADE */}
+        {/* INTERACTIVE GAME & SLIDE CATALOG */}
         <div className="space-y-4">
           <h3 className="text-lg font-extrabold text-slate-800 flex items-center gap-2">
-            <Gamepad2 className="w-5 h-5 text-amber-500" /> Trò Chơi Tương Tác Lớp {selectedGrade}
+            <Gamepad2 className="w-5 h-5 text-amber-500" /> Bài Học & Trò Chơi Tương Tác Lớp {selectedGrade}
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -159,7 +161,7 @@ export const StudentPortal = () => {
                     />
                     <div className="absolute inset-0 bg-slate-900/30 group-hover:bg-slate-900/50 flex items-center justify-center">
                       <div className="w-12 h-12 bg-amber-400 text-slate-900 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                        <Play className="w-6 h-6 fill-slate-900 ml-0.5" />
+                        {mat.type === 'game_html5' ? <Play className="w-6 h-6 fill-slate-900 ml-0.5" /> : <Eye className="w-6 h-6 text-slate-900" />}
                       </div>
                     </div>
                   </div>
@@ -175,12 +177,22 @@ export const StudentPortal = () => {
                   <p className="text-xs text-slate-500 line-clamp-2">{mat.description}</p>
                 </div>
 
-                <button
-                  onClick={() => setActiveGame(mat)}
-                  className="w-full btn-eduyellow py-2.5 text-xs font-black"
-                >
-                  <Play className="w-4 h-4 fill-slate-900" /> Bắt Đầu Chơi Ngay
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setActiveGame(mat)}
+                    className="flex-1 btn-eduyellow py-2.5 text-xs font-black"
+                  >
+                    <Play className="w-4 h-4 fill-slate-900" /> Bắt Đầu Chơi
+                  </button>
+
+                  <button
+                    onClick={() => setActiveViewerDoc(mat)}
+                    className="btn-outline-mint py-2.5 px-3 text-xs font-bold"
+                    title="Xem PDF / Slide Trực tuyến"
+                  >
+                    <FileText className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -238,6 +250,12 @@ export const StudentPortal = () => {
         isOpen={Boolean(activeGame)}
         onClose={() => setActiveGame(null)}
         gameMaterial={activeGame}
+      />
+
+      <PDFSlideViewerModal
+        isOpen={Boolean(activeViewerDoc)}
+        onClose={() => setActiveViewerDoc(null)}
+        documentItem={activeViewerDoc}
       />
     </div>
   );
